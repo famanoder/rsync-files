@@ -1,0 +1,28 @@
+{
+  "name": "ssh-upload",
+  "version": "1.0.0",
+  "description": "a simple way use sftp to upload or download files.",
+  "main": "./lib/upload.js",
+  "scripts": {
+    "test": "node ./lib/upload.js"
+  },
+  "keywords": [
+    "ssh",
+    "sftp",
+    "upload"
+  ],
+  "author": "famanoder",
+  "bin": {
+    "dps": "./bin/dps.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/famanoder/ssh-upload.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "glob": "^7.1.3",
+    "ssh2-sftp-client": "^2.5.0"
+  }
+}
