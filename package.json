@@ -1,23 +1,27 @@
 {
-  "name": "ssh-upload",
+  "name": "sync-files",
   "version": "1.0.0",
   "description": "a simple way use sftp to upload or download files.",
-  "main": "./lib/upload.js",
+  "main": "./lib/index.js",
   "scripts": {
     "test": "node ./lib/upload.js"
   },
   "keywords": [
     "ssh",
     "sftp",
-    "upload"
+    "upload",
+    "download"
   ],
   "author": "famanoder",
   "bin": {
-    "dps": "./bin/dps.js"
+    "sync-files": "./bin/sync-files.js"
+  },
+  "syncOption": {
+    
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/famanoder/ssh-upload.git"
+    "url": "https://github.com/famanoder/sync-files.git"
   },
   "license": "MIT",
   "dependencies": {
