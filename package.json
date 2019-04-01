@@ -10,14 +10,15 @@
     "ssh",
     "sftp",
     "upload",
-    "download"
+    "download",
+    "nodejs"
   ],
   "author": "famanoder",
   "bin": {
     "sync-files": "./bin/sync-files.js"
   },
   "syncOption": {
-    
+
   },
   "repository": {
     "type": "git",
