@@ -1,5 +1,5 @@
-const sftpUpload = require('./sftp-upload');
-const {log, getAgrType, makeAssetsMap} = require('./utils');
+import sftpUpload from './sftp-upload';
+import {log, getAgrType, makeAssetsMap} from './utils';
 
 function sshUpload({
   sftpOption: s,
@@ -10,7 +10,7 @@ function sshUpload({
 }) {
   
   if(getAgrType(s) !== 'object') {
-    log.error('sftpOption must be provided !', 'exit');
+    log.exit('sftpOption must be provided !');
   }
 
   let {
@@ -22,7 +22,7 @@ function sshUpload({
   } = s;
 
   if([username, password, target, ip].some(k => !k)) {
-    log.error('some sftpOption must be provided !', 'exit');
+    log.exit('some sftpOption must be provided !');
   }
 
   makeAssetsMap(source, ignoreRegexp)
@@ -54,5 +54,4 @@ sshUpload({
   }
 });
 
-module.exports = sshUpload;
-module.exports.sftpUpload = sftpUpload;
+export default sshUpload;

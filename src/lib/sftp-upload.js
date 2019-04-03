@@ -1,7 +1,7 @@
 require('events').EventEmitter.defaultMaxListeners = 0;
-const Client = require('ssh2-sftp-client');
-const path = require('path');
-const {log, c, normalizePath} = require('./utils');
+
+import Client from 'ssh2-sftp-client';
+import {log, c, normalizePath} from './utils';
 
 function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
 	const sftp = new Client();
@@ -59,4 +59,4 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
 	
 }
 
-module.exports = sshUpload;
+export default sshUpload;

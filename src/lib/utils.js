@@ -1,26 +1,32 @@
-const glob = require('glob');
-const c = require('chalk');
-const fs = require('fs');
-const url = require('url');
-const path = require('path');
+import glob from 'glob';
+import c from 'chalk';
+import fs from 'fs';
+import url from 'url';
+import path from 'path';
+import Events from 'events';
 
-const libName = require('../package.json').name;
+const verbose = process.env.VERBOSE;
+const events = new Events();
+const libName = require('../../package.json').name;
 
 function log() {
   console.log.apply(console, arguments);
 }
 
-log.error = function(msg, exit) {
+log.error = function(msg) {
   log(c.gray('\n['+libName+']: ') + c.red(msg));
-  exit && process.exit(0);
+}
+
+log.exit = function(msg) {
+  log.error(msg) && process.exit(0);
 }
 
 log.info = function(msg) {
-  log(c.greenBright(msg));
+  log(c.yellow('\n['+libName+']: ') + c.greenBright(msg));
 }
 
 function makeDirMap(dir, ignoreRegexp) {
-  if(!dir || !dir.replace(/^\//, '').length) log.error('invalid params of directory name', 'exit');
+  if(!dir || !dir.replace(/^\//, '').length) log.exit('invalid params of directory name');
 
   const _assetsMap = {
     assets: [], 
@@ -122,20 +128,28 @@ function parseOptionUri(uri) {
       target: n
     }
   }
-  log.error('invalid params of remote uri[-r --remote uri].', 'exit');
+  log.exit('invalid params of remote uri[-r --remote uri].');
 }
 
 function normalizePath(target, locpath = '') {
 	return path.join(target, locpath).replace(/\\/g, "/");
 }
 
-const utils = {
+['info', 'error', 'exit'].forEach(k => {
+  events.on(k, msg => {
+    if(verbose) {
+      log[k](msg);
+    }
+  });
+});
+
+export {
   c,
   log,
+  events,
   toRegExp,
   getAgrType,
   normalizePath,
   makeAssetsMap,
   parseOptionUri
-}
-module.exports = utils;
+};

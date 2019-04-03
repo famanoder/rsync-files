@@ -1,18 +1,27 @@
-const Client = require('ssh2-sftp-client');
-const {ensureDirSync} = require('fs-extra');
-const {dirname} = require('path');
-const {normalizePath} = require('./utils');
+import Client from 'ssh2-sftp-client';
+import {ensureDirSync} from 'fs-extra';
+import {dirname} from 'path';
+import {normalizePath, events as evts, c} from './utils';
 
 const sftp = new Client();
+const sftpClient = require('./sftp').default(sftp);
 
-// const remoteSource = '/home/others/test-ssh-upload/lib/';
-// const testSftpOption = {
-//   host: '118.24.182.253',
-//   port: '8992',
-//   username: 'root',
-//   password: '!Famanoder1'
-// }
-// downloadFile(remoteSource, 'abc');
+const remoteSource = '/home/others/test-ssh-upload/yarn.lock';
+const testSftpOption = {
+  host: '118.24.182.253',
+  port: '8992',
+  username: 'root',
+  password: '!Famanoder0',
+  compress: true
+}
+
+downloadFile({
+  sftpOption: testSftpOption,
+  remoteFilepath: remoteSource,
+  localFilepath: 'abc'
+}).then(() => {
+  console.log('ok')
+}).catch(e => evts.emit('exit', e.message));
 // downloadDir({
 //   sftpOption: testSftpOption,
 //   remoteSource, 
@@ -20,20 +29,41 @@ const sftp = new Client();
 // }).then(res => {
 //   console.log(res);
 // });
-// function connectSftp(sftpOption) {
-//   return sftp.connect(sftpOption);
-// }
+function connectSftp(sftpOption) {
+  return sftp.connect(sftpOption);
+}
+// sftp.connect(testSftpOption).then(res => {
+//   sftpClient.shallowDiff('abc', remoteSource)
+//   .then(res => console.log(res))
+//   .catch( _ => evts.emit('exit', _.message));
+//   // sftp.stat(remoteSource).then(res => {
+//   //   console.log(res)
+//   // }).catch(e=>console.log(e.message));
+// });
+function downloadInfo(localpath, remotepath) {
+  evts.emit('info', `download: ${c.whiteBright(remotepath)} ${c.gray('->')} ${c.whiteBright(localpath)}`);
+}
 
 function downloadFile({sftpOption = {}, remoteFilepath, localFilepath}) {
   return connectSftp(sftpOption)
   .then(() => {
-    return sftp.fastGet(remoteFilepath, localFilepath, {encoding: 'utf-8'}).then(() => {
-      console.log(`download: ${remoteFilepath} -> ${localFilepath}`);
-      sftp.end();
-      return Promise.resolve({remoteFilepath, localFilepath});
-    });
-  })
-  .catch(e => console.log(e));
+    return sftpClient.shallowDiff(localFilepath, remoteFilepath)
+          .then(eq => {
+            const resEnd = () => {
+              sftp.end();
+              return Promise.resolve({remoteFilepath, localFilepath});
+            }
+            if(!eq) {
+              return sftp.fastGet(remoteFilepath, localFilepath, {encoding: 'utf-8'}).then(() => {
+                downloadInfo(localFilepath, remoteFilepath);
+                return resEnd();
+              });
+            }else{
+              evts.emit('info', `exists: ${localFilepath}.`);
+              return resEnd();
+            }
+          });
+  });
 }
 function downloadDir({sftpOption = {}, remoteSource, localDir}) {
   return connectSftp(sftpOption)
@@ -56,7 +86,7 @@ function downloadAll(remoteSource, localDir, files) {
       const dir = dirname(localpath);
       ensureDirSync(dir);
       return sftp.fastGet(file, localpath).then(() => {
-        console.log(`download: ${file} -> ${localpath}`);
+        downloadInfo(localpath, file);
         return Promise.resolve({file, localpath});
       });
     });
@@ -98,8 +128,7 @@ function getRemoteList(sftp, rDir) {
   });
 }
 
-
-module.exports = {
+export default {
   downloadDir,
   downloadFile
 }
