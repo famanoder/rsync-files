@@ -22,7 +22,7 @@ log.exit = function(msg) {
 }
 
 log.info = function(msg) {
-  log(c.yellow('\n['+libName+']: ') + c.greenBright(msg));
+  log(c.yellow('['+libName+']: ') + c.greenBright(msg));
 }
 
 function makeDirMap(dir, ignoreRegexp) {
@@ -34,7 +34,7 @@ function makeDirMap(dir, ignoreRegexp) {
   }
 
   try{
-    log.info(`making '${dir}' assets map...\n`);
+    log.info(`making '${dir}' assets map...`);
     
     const folders = [];
     const assetsMap = glob.sync(`${dir}/**`, {

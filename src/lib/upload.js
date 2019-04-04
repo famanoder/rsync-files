@@ -40,14 +40,14 @@ function sshUpload({
 // const sshUpload = require('@nutui/client-upload');
 
 sshUpload({
-  source: ['lib', 'yarn.lock'],
+  source: ['dist', 'yarn.lock'],
   ignoreRegexp: /node_modules/,
   success: function() {
     console.log('all uploaded......');
   },
   sftpOption: {
-    ip: '118.24.182.253',
-    port: 8992,
+    ip: '132.232.60.18',
+    port: 22,
     username: 'root',
     password: '!Famanoder1',
     target: '/home/others/test-ssh-upload'

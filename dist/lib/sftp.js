@@ -7,20 +7,24 @@ exports.default = void 0;
 
 var _fsExtra = require("fs-extra");
 
-var _utils = require("./utils");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 var _default = sftp => {
   return {
     shallowDiff(localFilepath, remoteFilepath) {
-      let localStat;
+      return _asyncToGenerator(function* () {
+        let localStat;
 
-      try {
-        localStat = (0, _fsExtra.statSync)(localFilepath);
-      } catch (e) {
-        return Promise.resolve(false);
-      }
+        try {
+          localStat = (0, _fsExtra.statSync)(localFilepath);
+        } catch (e) {
+          // sftp.end();
+          return false;
+        }
 
-      return sftp.stat(remoteFilepath).then(res => {
+        const res = yield sftp.stat(remoteFilepath);
         let eq;
 
         if (res) {
@@ -35,8 +39,8 @@ var _default = sftp => {
           eq = size === localSize && modifyTime === new Date(mtime).getTime();
         }
 
-        return Promise.resolve(eq);
-      });
+        return eq;
+      })();
     }
 
   };

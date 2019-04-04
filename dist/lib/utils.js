@@ -50,7 +50,7 @@ log.exit = function (msg) {
 };
 
 log.info = function (msg) {
-  log(_chalk.default.yellow('\n[' + libName + ']: ') + _chalk.default.greenBright(msg));
+  log(_chalk.default.yellow('[' + libName + ']: ') + _chalk.default.greenBright(msg));
 };
 
 function makeDirMap(dir, ignoreRegexp) {
@@ -61,7 +61,7 @@ function makeDirMap(dir, ignoreRegexp) {
   };
 
   try {
-    log.info(`making '${dir}' assets map...\n`);
+    log.info(`making '${dir}' assets map...`);
     const folders = [];
 
     const assetsMap = _glob.default.sync(`${dir}/**`, {

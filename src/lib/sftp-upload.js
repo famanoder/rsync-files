@@ -7,7 +7,7 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
 	const sftp = new Client();
   const { username, password, target, ip, port } = sshOptions;
   
-	log.info(c.green('ready to connect to sftp.\n'));
+	log.info(c.green('ready to connect to sftp.'));
   
   sftp.connect({
 		host: ip,
@@ -20,7 +20,7 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
     
     folders.unshift('');
 		if(folders.length) {
-      log.info(c.green('\ninit remote directories ...\n'));
+      log.info(c.green('init remote directories ...'));
 
 			const folderPromises = folders.map(folder => {
 				return new Promise((rs, rj) => {

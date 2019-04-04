@@ -4,7 +4,7 @@
   "description": "a security and fast way use sftp to upload or download files.",
   "main": "./lib/index.js",
   "scripts": {
-    "pretest": "node ./node_modules/@babel/cli/bin/babel src --out-dir dist",
+    "build": "node ./node_modules/@babel/cli/bin/babel src --out-dir dist -w",
     "test": "cross-env VERBOSE=true node ./dist/lib/download.js"
   },
   "keywords": [

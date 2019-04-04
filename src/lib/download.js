@@ -8,20 +8,26 @@ const sftpClient = require('./sftp').default(sftp);
 
 const remoteSource = '/home/others/test-ssh-upload/yarn.lock';
 const testSftpOption = {
-  host: '118.24.182.253',
-  port: '8992',
+  host: '132.232.60.18',
+  port: '22',
   username: 'root',
-  password: '!Famanoder0',
+  password: '!Famanoder1',
   compress: true
 }
 
-downloadFile({
-  sftpOption: testSftpOption,
-  remoteFilepath: remoteSource,
-  localFilepath: 'abc'
-}).then(() => {
-  console.log('ok')
-}).catch(e => evts.emit('exit', e.message));
+;(async function() {
+  try{
+    const res = await downloadFile({
+      sftpOption: testSftpOption,
+      remoteFilepath: remoteSource,
+      localFilepath: 'abc'
+    });
+    console.log(res)
+  }catch(e) {
+    evts.emit('exit', e.message);
+  }
+})();
+
 // downloadDir({
 //   sftpOption: testSftpOption,
 //   remoteSource, 
@@ -29,8 +35,8 @@ downloadFile({
 // }).then(res => {
 //   console.log(res);
 // });
-function connectSftp(sftpOption) {
-  return sftp.connect(sftpOption);
+async function connectSftp(sftpOption) {
+  await sftp.connect(sftpOption);
 }
 // sftp.connect(testSftpOption).then(res => {
 //   sftpClient.shallowDiff('abc', remoteSource)
@@ -40,30 +46,32 @@ function connectSftp(sftpOption) {
 //   //   console.log(res)
 //   // }).catch(e=>console.log(e.message));
 // });
+
+function fastGet(remoteFilepath, localFilepath) {
+  return new Promise((rs, rj) => {
+    sftp.fastGet(remoteFilepath, localFilepath, {encoding: 'utf-8'}).then(res => rs(res)).catch(e => rj(e));
+  });
+}
 function downloadInfo(localpath, remotepath) {
   evts.emit('info', `download: ${c.whiteBright(remotepath)} ${c.gray('->')} ${c.whiteBright(localpath)}`);
 }
 
-function downloadFile({sftpOption = {}, remoteFilepath, localFilepath}) {
-  return connectSftp(sftpOption)
-  .then(() => {
-    return sftpClient.shallowDiff(localFilepath, remoteFilepath)
-          .then(eq => {
-            const resEnd = () => {
-              sftp.end();
-              return Promise.resolve({remoteFilepath, localFilepath});
-            }
-            if(!eq) {
-              return sftp.fastGet(remoteFilepath, localFilepath, {encoding: 'utf-8'}).then(() => {
-                downloadInfo(localFilepath, remoteFilepath);
-                return resEnd();
-              });
-            }else{
-              evts.emit('info', `exists: ${localFilepath}.`);
-              return resEnd();
-            }
-          });
-  });
+async function downloadFile({sftpOption = {}, remoteFilepath, localFilepath}) {
+  await connectSftp(sftpOption);
+  
+  const eq = await sftpClient.shallowDiff(localFilepath, remoteFilepath);
+
+  if(!eq) {
+      await fastGet(remoteFilepath, localFilepath);
+      // sftp.end();
+    downloadInfo(localFilepath, remoteFilepath);
+  }else{
+    evts.emit('info', `exists: ${localFilepath}.`);
+  }
+
+  
+  
+  return {remoteFilepath, localFilepath};
 }
 function downloadDir({sftpOption = {}, remoteSource, localDir}) {
   return connectSftp(sftpOption)
