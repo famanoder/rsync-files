@@ -1,29 +1,7 @@
 import glob from 'glob';
-import c from 'chalk';
 import fs from 'fs';
-import url from 'url';
-import path from 'path';
-import Events from 'events';
-
-const verbose = process.env.VERBOSE;
-const events = new Events();
-const libName = require('../../package.json').name;
-
-function log() {
-  console.log.apply(console, arguments);
-}
-
-log.error = function(msg) {
-  log(c.gray('\n['+libName+']: ') + c.red(msg));
-}
-
-log.exit = function(msg) {
-  log.error(msg) && process.exit(0);
-}
-
-log.info = function(msg) {
-  log(c.yellow('['+libName+']: ') + c.greenBright(msg));
-}
+import {getAgrType} from './';
+import {log, events} from './log';
 
 function makeDirMap(dir, ignoreRegexp) {
   if(!dir || !dir.replace(/^\//, '').length) log.exit('invalid params of directory name');
@@ -34,7 +12,7 @@ function makeDirMap(dir, ignoreRegexp) {
   }
 
   try{
-    log.info(`making '${dir}' assets map...`);
+    events.emit('info', log.CMDS.INIT, `making '${dir}' assets map.`);
     
     const folders = [];
     const assetsMap = glob.sync(`${dir}/**`, {
@@ -107,49 +85,4 @@ function makeAssetsMap(source, ignoreRegexp) {
   });
 }
 
-function getAgrType(agr) {
-  return Object.prototype.toString.call(agr).split(/\s/)[1].slice(0, -1).toLowerCase();
-}
- 
-function toRegExp(str){
-	str = getAgrType(str) === 'string'? str: JSON.stringify(str);
-	return str === '*'? (/.+/gi): new RegExp(str.replace(/[\$\?\.\/\-\*\\]/g, '\\$&'), 'gi');
-}
-
-function parseOptionUri(uri) {
-  // user:pass@host:port/target
-  const {protocol: u, auth: a, port = 22, hostname: h, pathname: n} = url.parse(uri);
-  if([u, a, h, n].every(v => !!v)) {
-    return {
-      host: h,
-      port,
-      username: u.slice(0, -1),
-      password: a,
-      target: n
-    }
-  }
-  log.exit('invalid params of remote uri[-r --remote uri].');
-}
-
-function normalizePath(target, locpath = '') {
-	return path.join(target, locpath).replace(/\\/g, "/");
-}
-
-['info', 'error', 'exit'].forEach(k => {
-  events.on(k, msg => {
-    if(verbose) {
-      log[k](msg);
-    }
-  });
-});
-
-export {
-  c,
-  log,
-  events,
-  toRegExp,
-  getAgrType,
-  normalizePath,
-  makeAssetsMap,
-  parseOptionUri
-};
+export default makeAssetsMap;

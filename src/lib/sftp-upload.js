@@ -1,26 +1,29 @@
 require('events').EventEmitter.defaultMaxListeners = 0;
 
 import Client from 'ssh2-sftp-client';
-import {log, c, normalizePath} from './utils';
+import ora from 'ora';
+import {log, verbose, events as evts, normalizePath} from '../utils';
+
+let spinner;
+const {CMDS} = log;
 
 function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
 	const sftp = new Client();
-  const { username, password, target, ip, port } = sshOptions;
-  
-	log.info(c.green('ready to connect to sftp.'));
+  const { username, password, target, host, port } = sshOptions;
   
   sftp.connect({
-		host: ip,
+		host,
 		port,
 		username,
 		password
 	})
 	.then(() => {
-		log.info(c.green(`connected to ${username}@${ip} successful !`));
+
+		evts.emit('info', CMDS.SFTP, `connect to ${username}@${host} successful !`);
     
     folders.unshift('');
 		if(folders.length) {
-      log.info(c.green('init remote directories ...'));
+			evts.emit('info', CMDS.SFTP, `init remote directories[${folders.slice(1)}]`);
 
 			const folderPromises = folders.map(folder => {
 				return new Promise((rs, rj) => {
@@ -28,15 +31,19 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
 					sftp.mkdir(rfolder).then(_ => rs(), _ => rs());
 				});
       });
-      
+			
 			Promise.all(folderPromises).then(res => {
+				if(verbose) {
+					spinner = ora().start();
+				}
+				const uploadeds = [];
 				const promises = assetsMap.map(item => {
 					return new Promise((rs, rj) => {
-            // sftp.put(item.assetSource, normalizePath(target, item.locPath), {encoding: 'utf8'})
+						if(spinner) spinner.text = `uploading ${item.locPath}`;
             sftp.fastPut(item.locPath, normalizePath(target, item.locPath), {encoding: 'utf8'})
 						.then(() => {
-              const uploaded = normalizePath(item.locPath);
-              console.log('uploaded ', uploaded)
+							const uploaded = normalizePath(item.locPath);
+							uploadeds.push(uploaded);
 							rs(uploaded);
 						})
 						.catch(err => rj(err));
@@ -44,12 +51,21 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
 				});
 				return Promise.all(promises)
               .then(res => {
-                log.info(`all ${assetsMap.length} files uploaded.`);
-                success && success(res);
-                sftp.end();
+								
+								if(uploadeds.length && verbose) {
+									spinner.clear();
+									uploadeds.forEach(item => {
+										log.info(CMDS.DONE, 'uploaded: ' + item);
+									});
+									spinner.succeed(`all ${uploadeds.length} files uploaded.`);
+								}
+								
+								success && success(res);
+								sftp.end();
               })
               .catch(_ => {
-                log.info(_);
+								spinner && spinner.clear().fail('upload failed.');
+                log.error(_.message);
                 fail && fail(_);
                 sftp.end();
               });

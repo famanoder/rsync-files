@@ -1,32 +1,11 @@
 import Client from 'ssh2-sftp-client';
 import {ensureDirSync} from 'fs-extra';
 import {dirname} from 'path';
-import {normalizePath, events as evts, c} from './utils';
+import {log, normalizePath, events as evts} from '../utils';
 
+const {CMDS} = log;
 const sftp = new Client();
 const sftpClient = require('./sftp').default(sftp);
-
-const remoteSource = '/home/others/test-ssh-upload/yarn.lock';
-const testSftpOption = {
-  host: '132.232.60.18',
-  port: '22',
-  username: 'root',
-  password: '!Famanoder1',
-  compress: true
-}
-
-;(async function() {
-  try{
-    const res = await downloadFile({
-      sftpOption: testSftpOption,
-      remoteFilepath: remoteSource,
-      localFilepath: 'abc'
-    });
-    console.log(res)
-  }catch(e) {
-    evts.emit('exit', e.message);
-  }
-})();
 
 // downloadDir({
 //   sftpOption: testSftpOption,
@@ -47,13 +26,8 @@ async function connectSftp(sftpOption) {
 //   // }).catch(e=>console.log(e.message));
 // });
 
-function fastGet(remoteFilepath, localFilepath) {
-  return new Promise((rs, rj) => {
-    sftp.fastGet(remoteFilepath, localFilepath, {encoding: 'utf-8'}).then(res => rs(res)).catch(e => rj(e));
-  });
-}
 function downloadInfo(localpath, remotepath) {
-  evts.emit('info', `download: ${c.whiteBright(remotepath)} ${c.gray('->')} ${c.whiteBright(localpath)}`);
+  evts.emit('info', CMDS.DONE, `${remotepath} to ${localpath}`);
 }
 
 async function downloadFile({sftpOption = {}, remoteFilepath, localFilepath}) {
@@ -62,14 +36,13 @@ async function downloadFile({sftpOption = {}, remoteFilepath, localFilepath}) {
   const eq = await sftpClient.shallowDiff(localFilepath, remoteFilepath);
 
   if(!eq) {
-      await fastGet(remoteFilepath, localFilepath);
-      // sftp.end();
+    await sftp.fastGet(remoteFilepath, localFilepath);
     downloadInfo(localFilepath, remoteFilepath);
   }else{
-    evts.emit('info', `exists: ${localFilepath}.`);
+    evts.emit('info', CMDS.DONE, `exists: ${localFilepath}.`);
   }
 
-  
+  sftp.end();
   
   return {remoteFilepath, localFilepath};
 }

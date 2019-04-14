@@ -1,5 +1,5 @@
 import sftpUpload from './sftp-upload';
-import {log, getAgrType, makeAssetsMap} from './utils';
+import {log, getAgrType, makeAssetsMap} from '../utils';
 
 function sshUpload({
   sftpOption: s,
@@ -17,18 +17,18 @@ function sshUpload({
     username, 
     password, 
     target, 
-    ip,
+    host,
     port = 22
   } = s;
 
-  if([username, password, target, ip].some(k => !k)) {
+  if([username, password, target, host].some(k => !k)) {
     log.exit('some sftpOption must be provided !');
   }
 
   makeAssetsMap(source, ignoreRegexp)
   .then(({assets, folders}) => {
     sftpUpload({
-      ip,
+      host,
       port,
       username,
       password,
@@ -37,21 +37,5 @@ function sshUpload({
   }).catch(e => log.error(e));
   
 }
-// const sshUpload = require('@nutui/client-upload');
-
-sshUpload({
-  source: ['dist', 'yarn.lock'],
-  ignoreRegexp: /node_modules/,
-  success: function() {
-    console.log('all uploaded......');
-  },
-  sftpOption: {
-    ip: '132.232.60.18',
-    port: 22,
-    username: 'root',
-    password: '!Famanoder1',
-    target: '/home/others/test-ssh-upload'
-  }
-});
 
 export default sshUpload;
