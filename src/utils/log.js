@@ -24,7 +24,8 @@ log.info = function(cmd, msg='...') {
 log.CMDS = {
   INIT: 'init',
   SFTP: 'sftp',
-  DONE: 'done'
+  DONE: 'done',
+  DOWNLOAD: 'download'
 }
 
 ;['info', 'error', 'exit'].forEach(k => {

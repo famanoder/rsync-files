@@ -1,8 +1,10 @@
 import Client from 'ssh2-sftp-client';
 import {ensureDirSync} from 'fs-extra';
 import {dirname} from 'path';
-import {log, normalizePath, events as evts} from '../utils';
+import ora from 'ora';
+import {log, calcText, verbose, normalizePath, events as evts} from '../utils';
 
+let spinner;
 const {CMDS} = log;
 const sftp = new Client();
 const sftpClient = require('./sftp').default(sftp);
@@ -27,16 +29,21 @@ async function connectSftp(sftpOption) {
 // });
 
 function downloadInfo(localpath, remotepath) {
-  evts.emit('info', CMDS.DONE, `${remotepath} to ${localpath}`);
+  evts.emit('info', CMDS.DOWNLOAD, `${calcText(remotepath)} to ${calcText(localpath)}`);
 }
 
 async function downloadFile({sftpOption = {}, remoteFilepath, localFilepath}) {
+  if(verbose) {
+    spinner = ora().start('making remote assetsMap.');
+  }
   await connectSftp(sftpOption);
   
+  spinner.text = `downloading ${remoteFilepath}`;
   const eq = await sftpClient.shallowDiff(localFilepath, remoteFilepath);
 
   if(!eq) {
     await sftp.fastGet(remoteFilepath, localFilepath);
+    spinner.clear().succeed('one file downloaded.');
     downloadInfo(localFilepath, remoteFilepath);
   }else{
     evts.emit('info', CMDS.DONE, `exists: ${localFilepath}.`);
@@ -47,6 +54,9 @@ async function downloadFile({sftpOption = {}, remoteFilepath, localFilepath}) {
   return {remoteFilepath, localFilepath};
 }
 function downloadDir({sftpOption = {}, remoteSource, localDir}) {
+  if(verbose) {
+    spinner = ora().start('making remote assetsMap.');
+  }
   return connectSftp(sftpOption)
   .then(() => {
     return getRemoteList(sftp, remoteSource)
@@ -62,17 +72,23 @@ function downloadDir({sftpOption = {}, remoteSource, localDir}) {
 
 function downloadAll(remoteSource, localDir, files) {
   if(files && files.length) {
-    const filesProms = files.map(file => {
+    const filesProms = files.map((file, i) => {
       const localpath = normalizePath(localDir, file.replace(remoteSource, ''));
       const dir = dirname(localpath);
+
+      if(spinner && i == 0) spinner.text = `downloading ${file}`;
       ensureDirSync(dir);
       return sftp.fastGet(file, localpath).then(() => {
+        if(spinner && i < files.length - 1) {
+          spinner.clear().text = `downloading ${files[i + 1]}`;
+        }
         downloadInfo(localpath, file);
         return Promise.resolve({file, localpath});
       });
     });
     return Promise.all(filesProms).then(res => {
       sftp.end();
+      if(spinner) spinner.clear().succeed(`all ${files.length} files downloaded.`);
       return Promise.resolve(res);
     });
   }

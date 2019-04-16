@@ -4,7 +4,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.toRegExp = toRegExp;
-exports.calcText = calcText;
 exports.findOptions = findOptions;
 exports.getAgrType = getAgrType;
 exports.normalizePath = normalizePath;
@@ -96,12 +95,4 @@ function findOptions() {
   if (_fs.default.existsSync(confFile)) {
     return require(confFile).sftpOption;
   }
-}
-
-function calcText(str) {
-  if (str.length > 40) {
-    return str.slice(0, 20) + '...' + (str.match(/([\/\\][^\/\\]+)$/) || ['', ''])[1];
-  }
-
-  return str;
 }

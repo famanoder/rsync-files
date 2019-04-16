@@ -43,11 +43,19 @@ function findOptions() {
   }
 }
 
+function calcText(str) {
+  if(str.length > 40) {
+      return str.slice(0, 20) + '...' + (str.match(/([\/\\][^\/\\]+)$/) || ['', ''])[1];
+  }
+  return str;
+}
+
 export {
   log,
   events,
   verbose,
   toRegExp,
+  calcText,
   findOptions,
   getAgrType,
   normalizePath,

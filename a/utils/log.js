@@ -40,8 +40,7 @@ log.info = function (cmd, msg = '...') {
 log.CMDS = {
   INIT: 'init',
   SFTP: 'sftp',
-  DONE: 'done',
-  DOWNLOAD: 'download'
+  DONE: 'done'
 };
 ['info', 'error', 'exit'].forEach(k => {
   events.on(k, function () {

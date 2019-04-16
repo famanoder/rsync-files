@@ -1,9 +1,9 @@
 const {findOptions, events: evts} = require('../dist/utils');
 const {default: download} = require('../dist/lib/download');
 
-const {downloadFile} = download;
+const {downloadFile, downloadDir} = download;
 
-const remoteSource = '/home/others/test-ssh-upload/yarn.lock';
+const remoteSource = '/home/others/test-ssh-upload/node_modules.zip';
 const testSftpOption = findOptions();
 
 downloadFile({
@@ -13,3 +13,9 @@ downloadFile({
 }).then(res => console.log(res)).catch(e => {
   evts.emit('exit', e.message);
 });
+
+// downloadDir({
+//   sftpOption: testSftpOption,
+//   remoteSource: remoteSource,
+//   localDir: 'a'
+// });
