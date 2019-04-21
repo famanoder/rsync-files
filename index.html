@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div class="html"></div>
+    <script>
+        var d = '2019-04-18 23:59:59';
+        var d2 = '2019/04/18 23:59:59';
+        document.querySelector('.html').innerHTML = [
+            'new Date: - : ' + new Date(d).getTime(),
+            'Date.parse: - : ' + Date.parse(d),
+            'new Date: / : ' + new Date(d2).getTime(),
+            'Date.parse: / : ' + Date.parse(d2),
+        ].join('<br/>');
+    </script>
+</body>
+</html>

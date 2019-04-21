@@ -36,7 +36,7 @@ const sftpClient = require('./sftp').default(sftp); // downloadDir({
 // });
 
 
-function connectSftp(_x) {
+function connectSftp() {
   return _connectSftp.apply(this, arguments);
 } // sftp.connect(testSftpOption).then(res => {
 //   sftpClient.shallowDiff('abc', remoteSource)
@@ -49,8 +49,14 @@ function connectSftp(_x) {
 
 
 function _connectSftp() {
-  _connectSftp = _asyncToGenerator(function* (sftpOption) {
-    yield sftp.connect(sftpOption);
+  _connectSftp = _asyncToGenerator(function* () {
+    const sftpOption = (0, _utils.findOptions)();
+
+    if (sftpOption) {
+      yield sftp.connect(sftpOption);
+    } else {
+      _utils.events.emit('exit', CMDS.SFTP, `please ensure that 'syncOptions.sftpOption' in package.json or has a 'rsync.config.js' exported 'sftpOption'`);
+    }
   });
   return _connectSftp.apply(this, arguments);
 }
@@ -59,7 +65,7 @@ function downloadInfo(localpath, remotepath) {
   _utils.events.emit('info', CMDS.DOWNLOAD, `${(0, _utils.calcText)(remotepath)} to ${(0, _utils.calcText)(localpath)}`);
 }
 
-function downloadFile(_x2) {
+function downloadFile(_x) {
   return _downloadFile.apply(this, arguments);
 }
 
@@ -114,8 +120,8 @@ function downloadDir({
         (0, _fsExtra.ensureDirSync)(localDir);
         return downloadAll(remoteSource, localDir, res);
       }
-    }).catch(e => console.log(e));
-  }).catch(e => console.log(e));
+    });
+  });
 }
 
 function downloadAll(remoteSource, localDir, files) {

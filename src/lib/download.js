@@ -2,7 +2,7 @@ import Client from 'ssh2-sftp-client';
 import {ensureDirSync} from 'fs-extra';
 import {dirname} from 'path';
 import ora from 'ora';
-import {log, calcText, verbose, normalizePath, events as evts} from '../utils';
+import {log, calcText, verbose, normalizePath, events as evts, findOptions} from '../utils';
 
 let spinner;
 const {CMDS} = log;
@@ -16,8 +16,14 @@ const sftpClient = require('./sftp').default(sftp);
 // }).then(res => {
 //   console.log(res);
 // });
-async function connectSftp(sftpOption) {
-  await sftp.connect(sftpOption);
+async function connectSftp() {
+  const sftpOption = findOptions();
+  if(sftpOption) {
+    await sftp.connect(sftpOption);
+  }else{
+    evts.emit('exit', CMDS.SFTP, `please ensure that 'syncOptions.sftpOption' in package.json or has a 'rsync.config.js' exported 'sftpOption'`);
+  }
+  
 }
 // sftp.connect(testSftpOption).then(res => {
 //   sftpClient.shallowDiff('abc', remoteSource)
@@ -69,9 +75,8 @@ function downloadDir({sftpOption = {}, remoteSource, localDir}) {
         ensureDirSync(localDir);
         return downloadAll(remoteSource, localDir, res);
       }
-    }).catch(e => console.log(e));
-  })
-  .catch(e => console.log(e))
+    });
+  });
 }
 
 function downloadAll(remoteSource, localDir, files) {

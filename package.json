@@ -4,8 +4,11 @@
   "description": "a security and fast way use sftp to upload or download files.",
   "main": "./lib/index.js",
   "scripts": {
-    "pretest": "babel src --out-dir dist",
-    "test": "cross-env VERBOSE=true node ./test/download.js"
+    "build": "babel src --out-dir dist -w",
+    "pretest": "npm run build",
+    "test": "cross-env VERBOSE=true node ./test/download.js",
+    "prerf": "npm run build",
+    "rf": "node ./dist/bin/rsync-files.js"
   },
   "keywords": [
     "ssh",
@@ -17,7 +20,7 @@
   ],
   "author": "famanoder",
   "bin": {
-    "rsync-files": "./bin/rsync-files.js"
+    "rsync-files": "./dist/bin/rsync-files.js"
   },
   "syncOptions": {
     "sftpOption": {
