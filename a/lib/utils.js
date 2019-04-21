@@ -5,7 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.log = log;
 exports.toRegExp = toRegExp;
-exports.findOptions = findOptions;
 exports.getAgrType = getAgrType;
 exports.normalizePath = normalizePath;
 exports.makeAssetsMap = makeAssetsMap;
@@ -16,7 +15,7 @@ Object.defineProperty(exports, "c", {
     return _chalk.default;
   }
 });
-exports.verbose = exports.events = void 0;
+exports.events = void 0;
 
 var _glob = _interopRequireDefault(require("glob"));
 
@@ -32,46 +31,27 @@ var _events = _interopRequireDefault(require("events"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const verbose = JSON.parse(process.env.VERBOSE);
-exports.verbose = verbose;
+const verbose = process.env.VERBOSE;
 const events = new _events.default();
 exports.events = events;
 
-const {
-  name: libName,
-  syncOptions
-} = require('../../package.json');
-
-const likeLinux = process.env.TERM === 'cygwin' || process.platform !== 'win32';
+const libName = require('../../package.json').name;
 
 function log() {
   console.log.apply(console, arguments);
 }
 
 log.error = function (msg) {
-  log(_chalk.default.gray('\n[' + libName + '] ') + _chalk.default.red(msg));
+  log(_chalk.default.gray('\n[' + libName + ']: ') + _chalk.default.red(msg));
 };
 
 log.exit = function (msg) {
   log.error(msg) && process.exit(0);
 };
 
-log.info = function (cmd, msg = '...') {
-  log(_chalk.default.cyanBright('[' + libName + '] ') + (cmd ? _chalk.default.greenBright(cmd + ': ') : '') + _chalk.default.white(msg));
+log.info = function (msg) {
+  log(_chalk.default.yellow('[' + libName + ']: ') + _chalk.default.greenBright(msg));
 };
-
-log.CMDS = {
-  INIT: 'init',
-  SFTP: 'sftp',
-  DONE: 'done'
-};
-['info', 'error', 'exit'].forEach(k => {
-  events.on(k, function () {
-    if (verbose) {
-      log[k].apply(log, arguments);
-    }
-  });
-});
 
 function makeDirMap(dir, ignoreRegexp) {
   if (!dir || !dir.replace(/^\//, '').length) log.exit('invalid params of directory name');
@@ -81,7 +61,7 @@ function makeDirMap(dir, ignoreRegexp) {
   };
 
   try {
-    events.emit('info', log.CMDS.INIT, `making '${dir}' assets map.`);
+    log.info(`making '${dir}' assets map...`);
     const folders = [];
 
     const assetsMap = _glob.default.sync(`${dir}/**`, {
@@ -199,12 +179,10 @@ function normalizePath(target, locpath = '') {
   return _path.default.join(target, locpath).replace(/\\/g, "/");
 }
 
-function findOptions() {
-  if (syncOptions) return syncOptions.sftpOption;
-
-  const confFile = _path.default.join(process.cwd(), 'rsync.config.js');
-
-  if (_fs.default.existsSync(confFile)) {
-    return require(confFile).sftpOption;
-  }
-}
+['info', 'error', 'exit'].forEach(k => {
+  events.on(k, msg => {
+    if (verbose) {
+      log[k](msg);
+    }
+  });
+});

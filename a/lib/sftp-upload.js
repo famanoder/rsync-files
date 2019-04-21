@@ -7,17 +7,11 @@ exports.default = void 0;
 
 var _ssh2SftpClient = _interopRequireDefault(require("ssh2-sftp-client"));
 
-var _ora = _interopRequireDefault(require("ora"));
-
-var _utils = require("../utils");
+var _utils = require("./utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 require('events').EventEmitter.defaultMaxListeners = 0;
-let spinner;
-const {
-  CMDS
-} = _utils.log;
 
 function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
   const sftp = new _ssh2SftpClient.default();
@@ -25,21 +19,24 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
     username,
     password,
     target,
-    host,
+    ip,
     port
   } = sshOptions;
+
+  _utils.log.info(_utils.c.green('ready to connect to sftp.'));
+
   sftp.connect({
-    host,
+    host: ip,
     port,
     username,
     password
   }).then(() => {
-    _utils.events.emit('info', CMDS.SFTP, `connect to ${username}@${host} successful !`);
+    _utils.log.info(_utils.c.green(`connected to ${username}@${ip} successful !`));
 
     folders.unshift('');
 
     if (folders.length) {
-      _utils.events.emit('info', CMDS.SFTP, `init remote directories[${folders.slice(1)}]`);
+      _utils.log.info(_utils.c.green('init remote directories ...'));
 
       const folderPromises = folders.map(folder => {
         return new Promise((rs, rj) => {
@@ -48,38 +45,25 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
         });
       });
       Promise.all(folderPromises).then(res => {
-        if (_utils.verbose) {
-          spinner = (0, _ora.default)().start();
-        }
-
-        const uploadeds = [];
         const promises = assetsMap.map(item => {
           return new Promise((rs, rj) => {
-            if (spinner) spinner.text = `uploading ${item.locPath}`;
+            // sftp.put(item.assetSource, normalizePath(target, item.locPath), {encoding: 'utf8'})
             sftp.fastPut(item.locPath, (0, _utils.normalizePath)(target, item.locPath), {
               encoding: 'utf8'
             }).then(() => {
               const uploaded = (0, _utils.normalizePath)(item.locPath);
-              uploadeds.push(uploaded);
+              console.log('uploaded ', uploaded);
               rs(uploaded);
             }).catch(err => rj(err));
           });
         });
         return Promise.all(promises).then(res => {
-          if (uploadeds.length && _utils.verbose) {
-            spinner.clear();
-            uploadeds.forEach(item => {
-              _utils.log.info(CMDS.DONE, 'uploaded: ' + item);
-            });
-            spinner.succeed(`all ${uploadeds.length} files uploaded.`);
-          }
+          _utils.log.info(`all ${assetsMap.length} files uploaded.`);
 
           success && success(res);
           sftp.end();
         }).catch(_ => {
-          spinner && spinner.clear().fail('upload failed.');
-
-          _utils.log.error(_.message);
+          _utils.log.info(_);
 
           fail && fail(_);
           sftp.end();

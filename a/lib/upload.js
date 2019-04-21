@@ -7,7 +7,7 @@ exports.default = void 0;
 
 var _sftpUpload = _interopRequireDefault(require("./sftp-upload"));
 
-var _utils = require("../utils");
+var _utils = require("./utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -26,11 +26,11 @@ function sshUpload({
     username,
     password,
     target,
-    host,
+    ip,
     port = 22
   } = s;
 
-  if ([username, password, target, host].some(k => !k)) {
+  if ([username, password, target, ip].some(k => !k)) {
     _utils.log.exit('some sftpOption must be provided !');
   }
 
@@ -39,14 +39,29 @@ function sshUpload({
     folders
   }) => {
     (0, _sftpUpload.default)({
-      host,
+      ip,
       port,
       username,
       password,
       target
     }, assets, folders, success, fail);
   }).catch(e => _utils.log.error(e));
-}
+} // const sshUpload = require('@nutui/client-upload');
 
+
+sshUpload({
+  source: ['dist', 'yarn.lock'],
+  ignoreRegexp: /node_modules/,
+  success: function () {
+    console.log('all uploaded......');
+  },
+  sftpOption: {
+    ip: '132.232.60.18',
+    port: 22,
+    username: 'root',
+    password: '!Famanoder1',
+    target: '/home/others/test-ssh-upload'
+  }
+});
 var _default = sshUpload;
 exports.default = _default;

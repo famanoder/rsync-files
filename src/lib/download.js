@@ -42,9 +42,13 @@ async function downloadFile({sftpOption = {}, remoteFilepath, localFilepath}) {
   const eq = await sftpClient.shallowDiff(localFilepath, remoteFilepath);
 
   if(!eq) {
-    await sftp.fastGet(remoteFilepath, localFilepath);
-    spinner.clear().succeed('one file downloaded.');
+    await sftp.fastGet(remoteFilepath, localFilepath, {
+      step(got, size, all) {
+        spinner.text = `${parseFloat(got/all*100).toFixed(2)}% downloading ${remoteFilepath}`
+      }
+    });
     downloadInfo(localFilepath, remoteFilepath);
+    spinner.clear().succeed('one file downloaded.');
   }else{
     evts.emit('info', CMDS.DONE, `exists: ${localFilepath}.`);
   }
@@ -78,9 +82,13 @@ function downloadAll(remoteSource, localDir, files) {
 
       if(spinner && i == 0) spinner.text = `downloading ${file}`;
       ensureDirSync(dir);
-      return sftp.fastGet(file, localpath).then(() => {
-        if(spinner && i < files.length - 1) {
-          spinner.clear().text = `downloading ${files[i + 1]}`;
+      return sftp.fastGet(file, localpath, {
+        step(got, size, all) {
+          if(spinner) spinner.text = `${parseFloat(got/all*100)}% downloading ${file}`;
+        }
+      }).then(() => {
+        if(spinner) {
+          spinner.clear();
         }
         downloadInfo(localpath, file);
         return Promise.resolve({file, localpath});

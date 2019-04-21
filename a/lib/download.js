@@ -11,7 +11,7 @@ var _fsExtra = require("fs-extra");
 
 var _path = require("path");
 
-var _utils = require("../utils");
+var _utils = require("./utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -71,8 +71,16 @@ function _connectSftp() {
   return _connectSftp.apply(this, arguments);
 }
 
+function fastGet(remoteFilepath, localFilepath) {
+  return new Promise((rs, rj) => {
+    sftp.fastGet(remoteFilepath, localFilepath, {
+      encoding: 'utf-8'
+    }).then(res => rs(res)).catch(e => rj(e));
+  });
+}
+
 function downloadInfo(localpath, remotepath) {
-  _utils.events.emit('info', `download: ${c.whiteBright(remotepath)} ${c.gray('->')} ${c.whiteBright(localpath)}`);
+  _utils.events.emit('info', `download: ${_utils.c.whiteBright(remotepath)} ${_utils.c.gray('->')} ${_utils.c.whiteBright(localpath)}`);
 }
 
 function downloadFile(_x2) {
@@ -89,13 +97,13 @@ function _downloadFile() {
     const eq = yield sftpClient.shallowDiff(localFilepath, remoteFilepath);
 
     if (!eq) {
-      yield sftp.fastGet(remoteFilepath, localFilepath);
+      yield fastGet(remoteFilepath, localFilepath); // sftp.end();
+
       downloadInfo(localFilepath, remoteFilepath);
     } else {
       _utils.events.emit('info', `exists: ${localFilepath}.`);
     }
 
-    sftp.end();
     return {
       remoteFilepath,
       localFilepath
