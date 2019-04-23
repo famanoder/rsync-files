@@ -27,6 +27,12 @@ Object.defineProperty(exports, "verbose", {
     return _log.verbose;
   }
 });
+Object.defineProperty(exports, "spinner", {
+  enumerable: true,
+  get: function () {
+    return _spinner.default;
+  }
+});
 Object.defineProperty(exports, "makeAssetsMap", {
   enumerable: true,
   get: function () {
@@ -41,6 +47,8 @@ var _url = _interopRequireDefault(require("url"));
 var _path = _interopRequireDefault(require("path"));
 
 var _log = require("./log");
+
+var _spinner = _interopRequireDefault(require("./spinner"));
 
 var _makeAssetsMap = _interopRequireDefault(require("./makeAssetsMap"));
 

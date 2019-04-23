@@ -7,14 +7,11 @@ exports.default = void 0;
 
 var _ssh2SftpClient = _interopRequireDefault(require("ssh2-sftp-client"));
 
-var _ora = _interopRequireDefault(require("ora"));
-
 var _utils = require("../utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 require('events').EventEmitter.defaultMaxListeners = 0;
-let spinner;
 const {
   CMDS
 } = _utils.log;
@@ -48,14 +45,13 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
         });
       });
       Promise.all(folderPromises).then(res => {
-        if (_utils.verbose) {
-          spinner = (0, _ora.default)().start();
-        }
+        _utils.spinner.start();
 
         const uploadeds = [];
         const promises = assetsMap.map(item => {
           return new Promise((rs, rj) => {
-            if (spinner) spinner.text = `uploading ${item.locPath}`;
+            _utils.spinner.step(`uploading ${item.locPath}`);
+
             sftp.fastPut(item.locPath, (0, _utils.normalizePath)(target, item.locPath), {
               encoding: 'utf8'
             }).then(() => {
@@ -67,17 +63,19 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
         });
         return Promise.all(promises).then(res => {
           if (uploadeds.length && _utils.verbose) {
-            spinner.clear();
+            _utils.spinner.clear();
+
             uploadeds.forEach(item => {
               _utils.log.info(CMDS.DONE, 'uploaded: ' + item);
             });
-            spinner.succeed(`all ${uploadeds.length} files uploaded.`);
+
+            _utils.spinner.succeed(`all ${uploadeds.length} files uploaded.`);
           }
 
           success && success(res);
           sftp.end();
         }).catch(_ => {
-          spinner && spinner.clear().fail('upload failed.');
+          _utils.spinner.fail('upload failed.');
 
           _utils.log.error(_.message);
 

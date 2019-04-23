@@ -7,7 +7,6 @@
     "build": "babel src --out-dir dist -w",
     "pretest": "npm run build",
     "test": "cross-env VERBOSE=true node ./test/download.js",
-    "prerf": "npm run build",
     "rf": "node ./dist/bin/rsync-files.js"
   },
   "keywords": [
@@ -40,6 +39,7 @@
     "@babel/cli": "^7.4.3",
     "@babel/core": "^7.4.3",
     "chalk": "^2.4.2",
+    "commander": "^2.20.0",
     "cross-env": "^5.2.0",
     "fs-extra": "^7.0.1",
     "glob": "^7.1.3",

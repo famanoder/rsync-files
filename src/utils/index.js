@@ -2,6 +2,7 @@ import fs from 'fs';
 import url from 'url';
 import path from 'path';
 import {log, events, verbose} from './log';
+import spinner from './spinner';
 import makeAssetsMap from './makeAssetsMap';
 
 const {syncOptions} = require('../../package.json');
@@ -53,6 +54,7 @@ function calcText(str) {
 export {
   log,
   events,
+  spinner,
   verbose,
   toRegExp,
   calcText,

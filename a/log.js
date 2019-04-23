@@ -14,7 +14,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 const events = new _events.default();
 exports.events = events;
-const verbose = JSON.parse(process.env.VERBOSE || true);
+const verbose = JSON.parse(process.env.VERBOSE);
 exports.verbose = verbose;
 
 const {
@@ -25,12 +25,12 @@ function log() {
   console.log.apply(console, arguments);
 }
 
-log.error = function (cmd, msg = '...') {
-  log(_chalk.default.gray('\n[' + libName + '] ') + (cmd ? _chalk.default.red(cmd + ': ') : '') + msg);
+log.error = function (msg) {
+  log(_chalk.default.gray('\n[' + libName + '] ') + _chalk.default.red(msg));
 };
 
-log.exit = function (cmd, msg) {
-  log.error(cmd, msg) && process.exit(0);
+log.exit = function (msg) {
+  log.error(msg) && process.exit(0);
 };
 
 log.info = function (cmd, msg = '...') {
@@ -41,8 +41,7 @@ log.CMDS = {
   INIT: 'init',
   SFTP: 'sftp',
   DONE: 'done',
-  DOWNLOAD: 'download',
-  ERROR: 'error'
+  DOWNLOAD: 'download'
 };
 ['info', 'error', 'exit'].forEach(k => {
   events.on(k, function () {

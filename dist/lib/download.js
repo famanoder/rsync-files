@@ -3,15 +3,14 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
+exports.downloadDir = downloadDir;
+exports.downloadFile = downloadFile;
 
 var _ssh2SftpClient = _interopRequireDefault(require("ssh2-sftp-client"));
 
 var _fsExtra = require("fs-extra");
 
 var _path = require("path");
-
-var _ora = _interopRequireDefault(require("ora"));
 
 var _utils = require("../utils");
 
@@ -21,7 +20,6 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-let spinner;
 const {
   CMDS
 } = _utils.log;
@@ -71,27 +69,30 @@ function downloadFile(_x) {
 
 function _downloadFile() {
   _downloadFile = _asyncToGenerator(function* ({
-    sftpOption = {},
     remoteFilepath,
     localFilepath
   }) {
-    if (_utils.verbose) {
-      spinner = (0, _ora.default)().start('making remote assetsMap.');
-    }
+    _utils.spinner.start('making remote assetsMap.');
 
-    yield connectSftp(sftpOption);
-    spinner.text = `downloading ${remoteFilepath}`;
+    yield connectSftp();
+
+    _utils.spinner.step(`downloading ${remoteFilepath}`);
+
     const eq = yield sftpClient.shallowDiff(localFilepath, remoteFilepath);
 
     if (!eq) {
       yield sftp.fastGet(remoteFilepath, localFilepath, {
         step(got, size, all) {
-          spinner.text = `${parseFloat(got / all * 100).toFixed(2)}% downloading ${remoteFilepath}`;
+          _utils.spinner.step(`${parseFloat(got / all * 100).toFixed(2)}% downloading ${remoteFilepath}`);
         }
 
       });
+
+      _utils.spinner.clear();
+
       downloadInfo(localFilepath, remoteFilepath);
-      spinner.clear().succeed('one file downloaded.');
+
+      _utils.spinner.succeed('one file downloaded.');
     } else {
       _utils.events.emit('info', CMDS.DONE, `exists: ${localFilepath}.`);
     }
@@ -106,15 +107,12 @@ function _downloadFile() {
 }
 
 function downloadDir({
-  sftpOption = {},
   remoteSource,
   localDir
 }) {
-  if (_utils.verbose) {
-    spinner = (0, _ora.default)().start('making remote assetsMap.');
-  }
+  _utils.spinner.start('making remote assetsMap.');
 
-  return connectSftp(sftpOption).then(() => {
+  return connectSftp().then(() => {
     return getRemoteList(sftp, remoteSource).then(res => {
       if (res && res.length) {
         (0, _fsExtra.ensureDirSync)(localDir);
@@ -129,17 +127,15 @@ function downloadAll(remoteSource, localDir, files) {
     const filesProms = files.map((file, i) => {
       const localpath = (0, _utils.normalizePath)(localDir, file.replace(remoteSource, ''));
       const dir = (0, _path.dirname)(localpath);
-      if (spinner && i == 0) spinner.text = `downloading ${file}`;
+      if (i == 0) _utils.spinner.step(`downloading ${file}`);
       (0, _fsExtra.ensureDirSync)(dir);
       return sftp.fastGet(file, localpath, {
         step(got, size, all) {
-          if (spinner) spinner.text = `${parseFloat(got / all * 100)}% downloading ${file}`;
+          _utils.spinner.step(`${parseFloat(got / all * 100)}% downloading ${file}`);
         }
 
       }).then(() => {
-        if (spinner) {
-          spinner.clear();
-        }
+        _utils.spinner.clear();
 
         downloadInfo(localpath, file);
         return Promise.resolve({
@@ -150,7 +146,9 @@ function downloadAll(remoteSource, localDir, files) {
     });
     return Promise.all(filesProms).then(res => {
       sftp.end();
-      if (spinner) spinner.clear().succeed(`all ${files.length} files downloaded.`);
+
+      _utils.spinner.succeed(`all ${files.length} files downloaded.`);
+
       return Promise.resolve(res);
     });
   }
@@ -184,7 +182,6 @@ function getRemoteList(sftp, rDir) {
           }
         }
       }).catch(e => {
-        console.log(e);
         rj(e);
       });
     }
@@ -192,9 +189,3 @@ function getRemoteList(sftp, rDir) {
     _getRemoteList(sftp, rDir);
   });
 }
-
-var _default = {
-  downloadDir,
-  downloadFile
-};
-exports.default = _default;
