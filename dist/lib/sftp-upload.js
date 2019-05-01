@@ -12,31 +12,22 @@ var _utils = require("../utils");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 require('events').EventEmitter.defaultMaxListeners = 0;
+const sftp = new _ssh2SftpClient.default();
+
+const sftpClient = require('./sftp').default(sftp);
+
 const {
   CMDS
 } = _utils.log;
 
-function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
-  const sftp = new _ssh2SftpClient.default();
-  const {
-    username,
-    password,
-    target,
-    host,
-    port
-  } = sshOptions;
-  sftp.connect({
-    host,
-    port,
-    username,
-    password
-  }).then(() => {
-    _utils.events.emit('info', CMDS.SFTP, `connect to ${username}@${host} successful !`);
+function sshUpload(target, assetsMap, folders = [], success, fail) {
+  _utils.spinner.start('connectting...');
 
+  sftpClient.connect().then(() => {
     folders.unshift('');
 
     if (folders.length) {
-      _utils.events.emit('info', CMDS.SFTP, `init remote directories[${folders.slice(1)}]`);
+      _utils.spinner.step(`init remote directories...`);
 
       const folderPromises = folders.map(folder => {
         return new Promise((rs, rj) => {
@@ -45,12 +36,10 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
         });
       });
       Promise.all(folderPromises).then(res => {
-        _utils.spinner.start();
-
         const uploadeds = [];
         const promises = assetsMap.map(item => {
           return new Promise((rs, rj) => {
-            _utils.spinner.step(`uploading ${item.locPath}`);
+            _utils.spinner.step(`uploading ${(0, _utils.calcText)(item.locPath)}`);
 
             sftp.fastPut(item.locPath, (0, _utils.normalizePath)(target, item.locPath), {
               encoding: 'utf8'
@@ -66,7 +55,7 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
             _utils.spinner.clear();
 
             uploadeds.forEach(item => {
-              _utils.log.info(CMDS.DONE, 'uploaded: ' + item);
+              _utils.events.emit('info', CMDS.DONE, 'uploaded: ' + (0, _utils.calcText)(item));
             });
 
             _utils.spinner.succeed(`all ${uploadeds.length} files uploaded.`);
@@ -77,7 +66,7 @@ function sshUpload(sshOptions, assetsMap, folders = [], success, fail) {
         }).catch(_ => {
           _utils.spinner.fail('upload failed.');
 
-          _utils.log.error(_.message);
+          _utils.events.emit('error', CMDS.ERROR, _);
 
           fail && fail(_);
           sftp.end();

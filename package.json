@@ -21,15 +21,6 @@
   "bin": {
     "rsync-files": "./dist/bin/rsync-files.js"
   },
-  "syncOptions": {
-    "sftpOption": {
-      "host": "132.232.60.18",
-      "port": 22,
-      "username": "root",
-      "password": "!Famanoder1",
-      "target": "/home/others/test-ssh-upload"
-    }
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/famanoder/sync-files.git"

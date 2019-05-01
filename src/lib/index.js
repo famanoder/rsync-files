@@ -1,9 +1,9 @@
-import sshUpload from './upload';
-import sshDownload from './download';
+import upload from './upload';
+import download from './download';
 
 const rsyncFiles = {
-  sshDownload,
-  sshUpload
+  download,
+  upload
 }
 
 export default rsyncFiles;

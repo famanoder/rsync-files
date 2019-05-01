@@ -37,10 +37,10 @@ function normalizePath(target, locpath = '') {
 }
 
 function findOptions() {
-  if(syncOptions) return syncOptions.sftpOption;
+  if(syncOptions) return syncOptions;
   const confFile = path.join(process.cwd(), 'rsync.config.js');
   if(fs.existsSync(confFile)) {
-    return require(confFile).sftpOption;
+    return require(confFile);
   }
 }
 

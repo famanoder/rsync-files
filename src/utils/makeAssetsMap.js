@@ -12,8 +12,6 @@ function makeDirMap(dir, ignoreRegexp) {
   }
 
   try{
-    events.emit('info', log.CMDS.INIT, `making '${dir}' assets map.`);
-    
     const folders = [];
     const assetsMap = glob.sync(`${dir}/**`, {
       dot: true
@@ -72,6 +70,8 @@ function makeAssetsMap(source, ignoreRegexp) {
             assetsMap.assets = assetsMap.assets.concat(assets);
             assetsMap.folders = assetsMap.folders.concat(folders);
           }
+        }else{
+          rj(`${source} is not exists.`);
         }
       }
     

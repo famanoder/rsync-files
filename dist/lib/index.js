@@ -12,8 +12,8 @@ var _download = _interopRequireDefault(require("./download"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const rsyncFiles = {
-  sshDownload: _download.default,
-  sshUpload: _upload.default
+  download: _download.default,
+  upload: _upload.default
 };
 var _default = rsyncFiles;
 exports.default = _default;

@@ -1,40 +1,20 @@
 import sftpUpload from './sftp-upload';
-import {log, getAgrType, makeAssetsMap} from '../utils';
+import {log, getAgrType, makeAssetsMap, events as evts} from '../utils';
+
+const {CMDS} = log;
 
 function sshUpload({
-  sftpOption: s,
+  target,
   source, 
   ignoreRegexp,
   success,
   fail
 }) {
-  
-  if(getAgrType(s) !== 'object') {
-    log.exit('sftpOption must be provided !');
-  }
-
-  let {
-    username, 
-    password, 
-    target, 
-    host,
-    port = 22
-  } = s;
-
-  if([username, password, target, host].some(k => !k)) {
-    log.exit('some sftpOption must be provided !');
-  }
 
   makeAssetsMap(source, ignoreRegexp)
   .then(({assets, folders}) => {
-    sftpUpload({
-      host,
-      port,
-      username,
-      password,
-      target
-    }, assets, folders, success, fail);
-  }).catch(e => log.error(e));
+    sftpUpload(target, assets, folders, success, fail);
+  }).catch(e => evts.emit('error', CMDS.ERROR, e));
   
 }
 

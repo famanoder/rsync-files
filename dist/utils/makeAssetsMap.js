@@ -23,8 +23,6 @@ function makeDirMap(dir, ignoreRegexp) {
   };
 
   try {
-    _log.events.emit('info', _log.log.CMDS.INIT, `making '${dir}' assets map.`);
-
     const folders = [];
 
     const assetsMap = _glob.default.sync(`${dir}/**`, {
@@ -92,6 +90,8 @@ function makeAssetsMap(source, ignoreRegexp) {
             assetsMap.assets = assetsMap.assets.concat(assets);
             assetsMap.folders = assetsMap.folders.concat(folders);
           }
+        } else {
+          rj(`${source} is not exists.`);
         }
       }
     }

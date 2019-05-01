@@ -97,12 +97,12 @@ function normalizePath(target, locpath = '') {
 }
 
 function findOptions() {
-  if (syncOptions) return syncOptions.sftpOption;
+  if (syncOptions) return syncOptions;
 
   const confFile = _path.default.join(process.cwd(), 'rsync.config.js');
 
   if (_fs.default.existsSync(confFile)) {
-    return require(confFile).sftpOption;
+    return require(confFile);
   }
 }
 

@@ -1,7 +1,7 @@
 import Client from 'ssh2-sftp-client';
 import {ensureDirSync} from 'fs-extra';
 import {dirname} from 'path';
-import {log, calcText, verbose, normalizePath, events as evts, findOptions, spinner} from '../utils';
+import {log, calcText, verbose, normalizePath, events as evts, spinner} from '../utils';
 
 const {CMDS} = log;
 const sftp = new Client();
@@ -10,19 +10,10 @@ const sftpClient = require('./sftp').default(sftp);
 // downloadDir({
 //   sftpOption: testSftpOption,
 //   remoteSource, 
-//   localDir: 'localDir'
+//   localTarget: 'localTarget'
 // }).then(res => {
 //   console.log(res);
 // });
-async function connectSftp() {
-  const sftpOption = findOptions();
-  if(sftpOption) {
-    await sftp.connect(sftpOption);
-  }else{
-    evts.emit('exit', CMDS.SFTP, `please ensure that 'syncOptions.sftpOption' in package.json or has a 'rsync.config.js' exported 'sftpOption'`);
-  }
-  
-}
 // sftp.connect(testSftpOption).then(res => {
 //   sftpClient.shallowDiff('abc', remoteSource)
 //   .then(res => console.log(res))
@@ -36,48 +27,48 @@ function downloadInfo(localpath, remotepath) {
   evts.emit('info', CMDS.DOWNLOAD, `${calcText(remotepath)} to ${calcText(localpath)}`);
 }
 
-async function downloadFile({remoteFilepath, localFilepath}) {
+async function downloadFile({remoteSource, localTarget}) {
   spinner.start('making remote assetsMap.');
-  await connectSftp();
+  await sftpClient.connect();
   
-  spinner.step(`downloading ${remoteFilepath}`);
-  const eq = await sftpClient.shallowDiff(localFilepath, remoteFilepath);
+  spinner.step(`downloading ${remoteSource}`);
+  const eq = await sftpClient.shallowDiff(localTarget, remoteSource);
 
   if(!eq) {
-    await sftp.fastGet(remoteFilepath, localFilepath, {
+    await sftp.fastGet(remoteSource, localTarget, {
       step(got, size, all) {
-        spinner.step(`${parseFloat(got/all*100).toFixed(2)}% downloading ${remoteFilepath}`);
+        spinner.step(`${parseFloat(got/all*100).toFixed(2)}% downloading ${remoteSource}`);
       }
     });
     spinner.clear();
-    downloadInfo(localFilepath, remoteFilepath);
+    downloadInfo(localTarget, remoteSource);
     spinner.succeed('one file downloaded.');
   }else{
-    evts.emit('info', CMDS.DONE, `exists: ${localFilepath}.`);
+    evts.emit('info', CMDS.DONE, `exists: ${localTarget}.`);
   }
 
   sftp.end();
   
-  return {remoteFilepath, localFilepath};
+  return {remoteSource, localTarget};
 }
-function downloadDir({remoteSource, localDir}) {
+function downloadDir({remoteSource, localTarget}) {
   spinner.start('making remote assetsMap.');
-  return connectSftp()
+  return sftpClient.connect()
   .then(() => {
     return getRemoteList(sftp, remoteSource)
     .then(res => {
       if(res && res.length) {
-        ensureDirSync(localDir);
-        return downloadAll(remoteSource, localDir, res);
+        ensureDirSync(localTarget);
+        return downloadAll(remoteSource, localTarget, res);
       }
     });
   });
 }
 
-function downloadAll(remoteSource, localDir, files) {
+function downloadAll(remoteSource, localTarget, files) {
   if(files && files.length) {
     const filesProms = files.map((file, i) => {
-      const localpath = normalizePath(localDir, file.replace(remoteSource, ''));
+      const localpath = normalizePath(localTarget, file.replace(remoteSource, ''));
       const dir = dirname(localpath);
 
       if(i == 0) spinner.step(`downloading ${file}`);
