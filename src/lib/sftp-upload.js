@@ -47,7 +47,7 @@ function recurrenceAssets(procNum, target, assetsMap) {
 		let uploaded = [];
 		function _once(assets) {
 			const currProgress = `${curr}/${procNum}`;
-			Promise.all(makeOncePromises(`${currProgress}`, target, assets)).then(res => {
+			promisesAll(makeOncePromises(`${currProgress}`, target, assets)).then(res => {
 				uploadedNum = 0;
 				
 				uploaded = [...uploaded, ...res];
