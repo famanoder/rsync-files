@@ -6,8 +6,9 @@ module.exports = {
     password: "!Famanoder1",
     target: "/home/others/test-ssh-upload"
   },
-  source: ".pnp",
-  target: '/home/others/test-ssh-uload/'
+  source: "node_modules",
+  target: '/home/others/test-ssh-uload/',
+  uploadConcurrencyNumber: 6000
 }
 
 // upload后可以exec

@@ -9,6 +9,10 @@ function log() {
   console.log.apply(console, arguments);
 }
 
+log.warn = function(cmd, msg) {
+  log(c.yellow('['+libName+'] ' + (cmd? cmd + ': ': '')) + msg);
+}
+
 log.error = function(cmd, msg='...') {
   log(c.gray('\n['+libName+'] ') + (cmd? c.red(cmd + ': '): '') + msg);
 }
@@ -26,10 +30,11 @@ log.CMDS = {
   SFTP: 'sftp',
   DONE: 'done',
   DOWNLOAD: 'download',
+  WARN: 'warning',
   ERROR: 'error'
 }
 
-;['info', 'error', 'exit'].forEach(k => {
+;['info', 'warn', 'error', 'exit'].forEach(k => {
   events.on(k, function() {
     if(verbose) {
       log[k].apply(log, arguments);
