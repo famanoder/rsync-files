@@ -19,7 +19,7 @@
   ],
   "author": "famanoder",
   "bin": {
-    "rsync-files": "./dist/bin/rsync-files.js"
+    "rf": "./dist/bin/rsync-files.js"
   },
   "repository": {
     "type": "git",

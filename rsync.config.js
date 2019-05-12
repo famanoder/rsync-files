@@ -3,11 +3,10 @@ module.exports = {
     host: "132.232.60.18",
     port: 22,
     username: "root",
-    password: "!Famanoder1",
-    target: "/home/others/test-ssh-upload"
+    password: "!Famanoder1"
   },
-  source: "node_modules",
-  target: '/home/others/test-ssh-uload/',
+  source: "/home/others/test-ssh-uload",
+  target: 'a',
   uploadConcurrencyNumber: 6000
 }
 

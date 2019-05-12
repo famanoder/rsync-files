@@ -49,7 +49,8 @@ function getParams() {
 
   return {
     source: _source,
-    target: _dest
+    target: _dest,
+    type
   };
 }
 
@@ -67,7 +68,8 @@ function uploadAction() {
 function downloadAction() {
   const {
     source,
-    target
+    target,
+    type
   } = getParams();
   download[type === 'file' ? 'downloadFile' : 'downloadDir']({
     remoteSource: source,

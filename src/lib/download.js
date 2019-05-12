@@ -1,7 +1,7 @@
 import Client from 'ssh2-sftp-client';
 import {ensureDirSync} from 'fs-extra';
 import {dirname} from 'path';
-import {log, calcText, verbose, normalizePath, events as evts, spinner} from '../utils';
+import {log, calcText, normalizePath, events as evts, spinner} from '../utils';
 
 const {CMDS} = log;
 const sftp = new Client();
@@ -55,6 +55,17 @@ function downloadDir({remoteSource, localTarget}) {
   spinner.start('making remote assetsMap.');
   return sftpClient.connect()
   .then(() => {
+    return sftp.client.exec('cd /home/others/test-ssh-uload && tar -cf n.zip node_modules',function(err, stream) {
+      if (err) throw err;
+      stream.on('close', function(code, signal) {
+        console.log('Stream :: close :: code: ' + code + ', signal: ' + signal);
+        sftp.end();
+      }).on('data', function(data) {
+        console.log('STDOUT: ' + data);
+      }).stderr.on('data', function(data) {
+        console.log('STDERR: ' + data);
+      });
+    });
     return getRemoteList(sftp, remoteSource)
     .then(res => {
       if(res && res.length) {
@@ -75,7 +86,7 @@ function downloadAll(remoteSource, localTarget, files) {
       ensureDirSync(dir);
       return sftp.fastGet(file, localpath, {
         step(got, size, all) {
-          spinner.step(`${parseFloat(got/all*100)}% downloading ${file}`);
+          spinner.step(`${Math.round(got/all*100)}% downloading ${file}`);
         }
       }).then(() => {
         spinner.clear();
@@ -91,34 +102,30 @@ function downloadAll(remoteSource, localTarget, files) {
   }
 }
 
-function getRemoteList(sftp, rDir) {
-  return new Promise((rs, rj) => {
+async function getRemoteList(sftp, rDir) {
+  // return new Promise((rs, rj) => {
     const remoteFileList = [];
-    function _getRemoteList(sftp, dir) {
-      sftp.list(dir)
-      .then(res => {
-        if(res.length) {
-          const hasMore = res.filter(item => item.type === 'd').length;
-          if(hasMore) {
-            res.forEach(({name, type}) => {
-              if(type === 'd') {
-                _getRemoteList(sftp, normalizePath(dir, name));
-              }else if(type === '-') {
-                remoteFileList.push(normalizePath(dir, name));
-              }
-            });
-          }else{
-            res.forEach(({name}) => remoteFileList.push(normalizePath(dir, name)));
-            rs(remoteFileList);
+    async function _getRemoteList(sftp, dir) {
+      const res = await sftp.list(dir);
+      if(res.length) {
+        const hasMore = res.filter(item => item.type === 'd').length;
+        if(hasMore) {
+          for(const {name, type} of res) {
+            // 没有深层递归遍历
+            if(type === 'd') {
+              await _getRemoteList(sftp, normalizePath(dir, name));
+            }else if(type === '-') {
+              remoteFileList.push(normalizePath(dir, name));
+            }
           }
+        }else{
+          res.forEach(({name}) => remoteFileList.push(normalizePath(dir, name)));
         }
-      })
-      .catch(e => {
-        rj(e);
-      });
+      }
     }
-    _getRemoteList(sftp, rDir);
-  });
+    await _getRemoteList(sftp, rDir);
+    return remoteFileList;
+  // });
 }
 
 export {
